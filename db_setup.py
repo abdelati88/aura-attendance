@@ -1,11 +1,9 @@
 import sqlite3
 
 def create_db():
-    # إنشاء أو الاتصال بقاعدة البيانات
     conn = sqlite3.connect('attendance.db')
     cursor = conn.cursor()
 
-    # إنشاء جدول الموظفين
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,7 +11,6 @@ def create_db():
         )
     ''')
 
-    # إنشاء جدول الحضور والانصراف
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
