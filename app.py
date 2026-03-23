@@ -4,10 +4,8 @@ import pandas as pd
 from datetime import datetime
 from streamlit_option_menu import option_menu
 
-# إعدادات الصفحة
 st.set_page_config(page_title="نظام حضور وانصراف Aura QR", page_icon="🏢", layout="wide")
 
-# ----------------- تنسيق احترافي (CSS) -----------------
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
@@ -45,15 +43,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ----------------- دوال قاعدة البيانات -----------------
 def get_connection():
     return sqlite3.connect('attendance.db')
 
-# ----------------- رأس الصفحة -----------------
 st.markdown("<h1>🏢 نظام إدارة الحضور والانصراف - Aura QR</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-# ----------------- شريط التنقل الاحترافي (Menu) -----------------
 selected = option_menu(
     menu_title=None, 
     options=["تسجيل اليومية", "إدارة الفريق", "تقارير المتابعة"], 
@@ -209,7 +204,6 @@ elif selected == "تقارير المتابعة":
         df.fillna('لم ينصرف بعد', inplace=True)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
-        # ملخص للموظف
         if filter_option == "تقرير موظف محدد":
             late_days = df['حالة الحضور (ميعاد 9 ص)'].str.contains('متأخر').sum()
             if late_days > 0:
