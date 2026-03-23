@@ -5,29 +5,147 @@ from datetime import datetime
 from streamlit_option_menu import option_menu
 import os
 
-# إعدادات الصفحة
+# ----------------- Page Configuration -----------------
 st.set_page_config(page_title="نظام حضور وانصراف Aura QR", page_icon="🏢", layout="wide")
 
-# ----------------- تنسيق احترافي (CSS) -----------------
+# ----------------- Professional Styling (CSS) -----------------
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-    html, body, [class*="css"] { font-family: 'Cairo', sans-serif !important; }
-    .stApp { direction: rtl; }
-    h1 { color: #1E3A8A !important; text-align: center !important; font-weight: 700 !important; padding-bottom: 20px; }
-    div.stButton > button:first-child { background-color: #2563EB; color: white; border-radius: 8px; border: none; font-weight: bold; font-size: 16px; transition: all 0.3s ease; width: 100%; padding: 10px; }
-    div.stButton > button:hover { background-color: #1E3A8A; color: white; }
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
     
-    /* تظبيط اتجاهات الخانات عشان الأرقام تتكتب مظبوط */
+    /* Apply Cairo font without forcing it on every single div/span to prevent breaking Streamlit's SVGs/Icons */
+    html, body, .stApp { 
+        direction: rtl; 
+        background-color: #F8FAFC !important;
+        font-family: 'Cairo', sans-serif !important;
+    }
+    
+    p, label, li, table, input, button, select, .stMarkdown, .stText { 
+        font-family: 'Cairo', sans-serif !important; 
+    }
+    
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 { 
+        font-family: 'Cairo', sans-serif !important;
+        color: #1E3A8A !important; 
+        font-weight: 800 !important; 
+    }
+    
+    /* 🔴 Fix Icons and Arrows in Dropdowns and Expanders (Resolve RTL and keyboard_arrow_down issues) */
+    .stSelectbox div[data-baseweb="select"] span[aria-hidden="true"], 
+    .stSelectbox div[data-baseweb="select"] i,
+    .stSelectbox div[data-baseweb="select"] svg,
+    div[data-testid="stExpander"] details summary svg,
+    div[data-testid="stExpander"] details summary i,
+    span[class*="icon"], 
+    span[class*="stIcon"],
+    i, 
+    svg,
+    .material-icons,
+    .material-symbols-rounded {
+        font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
+        direction: ltr !important;
+    }
+    
+    hr {
+        border-color: #EAB308 !important;
+        opacity: 0.5;
+    }
+    
+    /* 1. Cards styling for dataframes, metrics, and expanders */
+    div[data-testid="stExpander"], div[data-testid="stDataFrame"], .metric-card {
+        background-color: #FFFFFF !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        border: none !important;
+    }
+    
+    /* Top block adjustment */
+    .block-container {
+        padding-top: 2rem !important;
+    }
+    
+    /* 2. Primary Buttons */
+    div.stButton > button { 
+        background-color: #1E3A8A !important;
+        color: white !important; 
+        border-radius: 12px !important; 
+        border: none !important; 
+        font-weight: 700 !important; 
+        font-size: 16px !important; 
+        transition: all 0.3s ease-in-out !important; 
+        width: 100% !important; 
+        padding: 12px 10px !important; 
+    }
+    div.stButton > button:hover { 
+        background-color: #EAB308 !important;
+        color: #1E3A8A !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* 3. Inputs & Selectboxes */
+    .stTextInput input, .stNumberInput input, div[data-baseweb="select"] > div, .stDateInput input {
+        border-radius: 10px !important;
+        border: 1px solid #1E3A8A !important;
+        transition: all 0.3s ease !important;
+    }
+    .stTextInput input:focus, .stNumberInput input:focus, .stDateInput input:focus {
+        border-color: #EAB308 !important;
+        box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.3) !important;
+    }
+    
+    /* Input Text alignment */
     input[type="text"], input[type="number"], .stDateInput {
         direction: ltr !important;
         text-align: center !important;
-        font-weight: bold !important;
+        font-weight: 700 !important;
+    }
+    
+    /* 4. Quick Stats CSS (restled) */
+    .metric-card {
+        padding: 20px;
+        text-align: center;
+        border-top: 4px solid #1E3A8A !important;
+        transition: transform 0.3s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+        border-top-color: #EAB308 !important;
+    }
+    .metric-title {
+        color: #1E3A8A;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .metric-value {
+        color: #1E3A8A;
+        font-size: 32px;
+        font-weight: 800;
+    }
+    .metric-icon {
+        font-size: 28px;
+        margin-bottom: 12px;
+        color: #EAB308;
+    }
+
+    /* 5. Custom Success Alert Box */
+    div[data-testid="stAlert"] {
+        border-radius: 12px !important;
+        border: none !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        background-color: #FFFFFF !important;
+        border-right: 5px solid #EAB308 !important; /* Gold accent line */
+    }
+    div[data-testid="stAlert"] p {
+        color: #1E3A8A !important;
+        font-weight: 600 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# ----------------- تجهيز قاعدة البيانات -----------------
+# ----------------- Database Setup -----------------
 def init_db():
     if not os.path.exists('data'):
         os.makedirs('data')
@@ -43,11 +161,20 @@ def get_connection():
 
 init_db()
 
-# ----------------- رأس الصفحة -----------------
-st.markdown("<h1>🏢 نظام إدارة الحضور والانصراف - Aura QR</h1>", unsafe_allow_html=True)
+# ----------------- Page Header -----------------
+col_logo, col_title = st.columns([1, 5])
+with col_logo:
+    if os.path.exists("assets/logo.png"):
+        st.image("assets/logo.png", width=120)
+    else:
+        st.markdown("<h2 style='text-align: right; color: #1E3A8A; margin-top:15px;'>AURA</h2>", unsafe_allow_html=True)
+
+with col_title:
+    st.markdown("<h1 style='text-align: right; margin-top: 15px; font-size: 38px;'>نظام إدارة الحضور والانصراف</h1>", unsafe_allow_html=True)
+
 st.markdown("---")
 
-# ----------------- شريط التنقل الاحترافي (Menu) -----------------
+# ----------------- Professional Navigation Menu -----------------
 selected = option_menu(
     menu_title=None, 
     options=["تسجيل اليومية", "إدارة الفريق", "تقارير المتابعة"], 
@@ -56,16 +183,81 @@ selected = option_menu(
     default_index=0, 
     orientation="horizontal",
     styles={
-        "container": {"padding": "0!important", "background-color": "#f8f9fa", "direction": "rtl"},
-        "icon": {"color": "#2563EB", "font-size": "20px"}, 
-        "nav-link": {"font-size": "18px", "text-align": "center", "margin":"0px", "--hover-color": "#e2e8f0", "font-family": "Cairo"},
-        "nav-link-selected": {"background-color": "#1E3A8A", "color": "white"},
+        "container": {
+            "padding": "0!important", 
+            "background-color": "#F8FAFC", 
+            "direction": "rtl",
+            "border": "1px solid #1E3A8A",
+            "border-radius": "12px"
+        },
+        "icon": {"color": "#EAB308", "font-size": "20px"},
+        "nav-link": {
+            "color": "#1E3A8A",
+            "font-size": "18px", 
+            "text-align": "center", 
+            "margin": "0px", 
+            "--hover-color": "#e2e8f0", 
+            "font-family": "Cairo",
+            "font-weight": "bold"
+        },
+        "nav-link-selected": {
+            "background-color": "#1E3A8A", 
+            "color": "white"
+        },
     }
 )
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ----------------- محتوى الأقسام -----------------
+# ----------------- Sections Content -----------------
 if selected == "تسجيل اليومية":
+    st.write("### 📈 إحصائيات اليوم")
+    now_date_str = datetime.now().strftime("%Y-%m-%d")
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # 1. Total Employees
+    cursor.execute("SELECT COUNT(*) FROM employees")
+    total_emp = cursor.fetchone()[0]
+    
+    # 2. Present Today
+    cursor.execute("SELECT COUNT(DISTINCT employee_name) FROM attendance WHERE date=?", (now_date_str,))
+    present_today = cursor.fetchone()[0]
+    
+    # 3. Late Today
+    cursor.execute("SELECT COUNT(DISTINCT employee_name) FROM attendance WHERE date=? AND check_in > '09:00:00'", (now_date_str,))
+    late_today = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-icon">👥</div>
+            <div class="metric-title">إجمالي الموظفين</div>
+            <div class="metric-value">{total_emp}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with m2:
+        st.markdown(f"""
+        <div class="metric-card" style="border-top-color: #10B981;">
+            <div class="metric-icon">✅</div>
+            <div class="metric-title">حضور اليوم</div>
+            <div class="metric-value">{present_today}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with m3:
+        st.markdown(f"""
+        <div class="metric-card" style="border-top-color: #EF4444;">
+            <div class="metric-icon">⏰</div>
+            <div class="metric-title">تأخير اليوم</div>
+            <div class="metric-value">{late_today}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+
     st.subheader("📝 تسجيل حركات اليوم")
     conn = get_connection()
     employees_df = pd.read_sql_query("SELECT name FROM employees", conn)
@@ -80,7 +272,7 @@ if selected == "تسجيل اليومية":
 
         st.markdown("##### ⏱️ تحديد وقت وتاريخ التسجيل:")
         
-        # تقسيم السطر لـ 3 خانات: التاريخ، الساعة، الدقيقة
+        # Split the row into 3 columns: Date, Hour, Minute
         col_date, col_hour, col_minute = st.columns([2, 1, 1])
         
         now = datetime.now()
@@ -88,14 +280,14 @@ if selected == "تسجيل اليومية":
         with col_date:
             manual_date = st.date_input("التاريخ:", now)
         with col_hour:
-            # خانة مخصصة للساعة (بنظام 24 ساعة)
+            # Dedicated field for the hour (24-hour format)
             hour = st.number_input("الساعة (0-23):", min_value=0, max_value=23, value=now.hour, step=1)
         with col_minute:
-            # خانة مخصصة للدقيقة
+            # Dedicated field for the minute
             minute = st.number_input("الدقيقة (0-59):", min_value=0, max_value=59, value=now.minute, step=1)
 
         final_date = manual_date.strftime("%Y-%m-%d")
-        # تجميع الساعة والدقيقة في شكل نصي لقاعدة البيانات
+        # Combine hour and minute into a string format for the database
         final_time = f"{hour:02d}:{minute:02d}:00"
 
         st.write("") 
