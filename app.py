@@ -5,8 +5,10 @@ from datetime import datetime
 from streamlit_option_menu import option_menu
 import os
 
+# إعدادات الصفحة
 st.set_page_config(page_title="نظام حضور وانصراف Aura QR", page_icon="🏢", layout="wide")
 
+# ----------------- تنسيق احترافي (CSS) -----------------
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
@@ -15,9 +17,17 @@ st.markdown("""
     h1 { color: #1E3A8A !important; text-align: center !important; font-weight: 700 !important; padding-bottom: 20px; }
     div.stButton > button:first-child { background-color: #2563EB; color: white; border-radius: 8px; border: none; font-weight: bold; font-size: 16px; transition: all 0.3s ease; width: 100%; padding: 10px; }
     div.stButton > button:hover { background-color: #1E3A8A; color: white; }
+    
+    /* تظبيط اتجاهات الخانات عشان الأرقام تتكتب مظبوط */
+    input[type="text"], input[type="number"], .stDateInput {
+        direction: ltr !important;
+        text-align: center !important;
+        font-weight: bold !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
+# ----------------- تجهيز قاعدة البيانات -----------------
 def init_db():
     if not os.path.exists('data'):
         os.makedirs('data')
@@ -33,9 +43,11 @@ def get_connection():
 
 init_db()
 
+# ----------------- رأس الصفحة -----------------
 st.markdown("<h1>🏢 نظام إدارة الحضور والانصراف - Aura QR</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
+# ----------------- شريط التنقل الاحترافي (Menu) -----------------
 selected = option_menu(
     menu_title=None, 
     options=["تسجيل اليومية", "إدارة الفريق", "تقارير المتابعة"], 
@@ -52,6 +64,7 @@ selected = option_menu(
 )
 st.markdown("<br>", unsafe_allow_html=True)
 
+# ----------------- محتوى الأقسام -----------------
 if selected == "تسجيل اليومية":
     st.subheader("📝 تسجيل حركات اليوم")
     conn = get_connection()
@@ -61,22 +74,29 @@ if selected == "تسجيل اليومية":
     if not employees_df.empty:
         emp_list = employees_df['name'].tolist()
         
-        # اختيار الموظف
         col_emp, _ = st.columns([1, 1])
         with col_emp:
             selected_emp = st.selectbox("اختار اسم الموظف من القائمة:", emp_list)
 
         st.markdown("##### ⏱️ تحديد وقت وتاريخ التسجيل:")
-        # إضافة إمكانية تعديل الوقت والتاريخ يدوياً
-        col_date, col_time = st.columns(2)
+        
+        # تقسيم السطر لـ 3 خانات: التاريخ، الساعة، الدقيقة
+        col_date, col_hour, col_minute = st.columns([2, 1, 1])
+        
+        now = datetime.now()
+        
         with col_date:
-            manual_date = st.date_input("التاريخ:", datetime.now())
-        with col_time:
-            manual_time = st.time_input("الوقت:", datetime.now().time())
+            manual_date = st.date_input("التاريخ:", now)
+        with col_hour:
+            # خانة مخصصة للساعة (بنظام 24 ساعة)
+            hour = st.number_input("الساعة (0-23):", min_value=0, max_value=23, value=now.hour, step=1)
+        with col_minute:
+            # خانة مخصصة للدقيقة
+            minute = st.number_input("الدقيقة (0-59):", min_value=0, max_value=59, value=now.minute, step=1)
 
-        # تحويل الوقت والتاريخ المدخلين لنصوص عشان قاعدة البيانات
         final_date = manual_date.strftime("%Y-%m-%d")
-        final_time = manual_time.strftime("%H:%M:%S")
+        # تجميع الساعة والدقيقة في شكل نصي لقاعدة البيانات
+        final_time = f"{hour:02d}:{minute:02d}:00"
 
         st.write("") 
         col1, col2, col3 = st.columns([1, 1, 1])
